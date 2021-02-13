@@ -19,6 +19,7 @@ function init() {
 
     //create a context
     pen = canvas.getContext('2d');
+    game_over = false;
 
     enemy1 = {
         x: 150,
@@ -51,6 +52,7 @@ function init() {
         h: 60,
         speed: 20,
         moving: 'false',
+        health: 100,
     }
     gem = {
         x: W-100,
@@ -69,6 +71,15 @@ function init() {
         player.moving = false;
     });
 }
+function isOverlap(rect1, rect2) {
+    if(rect1.x < rect2.x + rect2.w &&
+        rect1.x + rect1.w > rect2.x &&
+        rect1.y < rect2.y + rect2.h &&
+        rect1.y + rect1.h > rect2.y) {
+            return true;
+        }
+        return false;
+}
 function draw() {
     //clear the canvas area for the old frame
     pen.clearRect(0, 0, W, H);
@@ -79,10 +90,34 @@ function draw() {
     enemies.forEach(enemy => {
         pen.drawImage(enemyImage, enemy.x, enemy.y, enemy.w, enemy.h); 
     });
+
+    pen.fillStyle = 'white';
+    pen.fillText('Score ' + player.health, 10, 10);
 }
 function update() {
+    //if the player is moving
     if(player.moving == true) {
         player.x += player.speed;
+        player.health += 20;
+    }
+
+    //player and enemy collision
+    for(let i=0;i<enemies.length;i++) {
+        if(isOverlap(enemies[i], player)) {
+            player.health -= 50;
+            if(player.health <= 0) {
+                alert('Game Over!');
+                game_over = true;
+                return;
+            }
+        }
+    }
+
+    //player and gem collision
+    if(isOverlap(player, gem)) {
+         alert('You Won!');
+         game_over = true;
+         return;
     }
 
     enemies.forEach(enemy => {
@@ -93,6 +128,9 @@ function update() {
     })
 }
 function gameloop() {
+    if(game_over === true) {
+        clearInterval(f);
+    }
     draw();
     update();
 }
